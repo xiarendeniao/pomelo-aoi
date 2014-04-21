@@ -90,7 +90,7 @@ void WatcherMoved(Object* watcher, const set<Object*>& appearObjs, const set<Obj
 
 void SplitString(vector<string>& strVector, const char* str)
 {
-	ASSERT(strlen(str) <= 1024);
+	ASSERT(strlen(str) < 1024);
 	static char buff[1024] = {0};
 	const char* ptr = str;
 	char* buffPtr = buff;
