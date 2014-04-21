@@ -109,6 +109,39 @@ void SplitString(vector<string>& strVector, const char* str)
 	}
 }
 
+void AddRandomObject(map<uint32,Object*>& objs, TowerAoi::TowerAoi<Object>* aoi)
+{
+	uint32 maxId = 0;
+	for (map<uint32,Object*>::iterator it = objs.begin(); it != objs.end(); it++) {
+		if (it->first > maxId)
+			maxId = it->first;
+	}
+	Object* obj = new Object(maxId + 1, rand()%TYPE_NUM);
+	objs[obj->GetId()] = obj;
+	Location pos = GetRandLocaion();
+	obj->SetPos(pos);
+	aoi->AddObject(obj, pos);
+	if (rand()%2 == 1) {
+		obj->m_isWatcher = true;
+		aoi->AddWatcher(obj, pos, RANGE_TOWER);
+	}
+}
+
+Object* GetRandomObject(const map<uint32,Object*>& objs)
+{
+	uint32 randIndex = rand()%objs.size();
+	uint32 tmpIndex = 0;
+	Object* obj = NULL;
+	map<uint32, Object*>::const_iterator it = objs.begin();
+	for (; it != objs.end(); it++) {
+		if (tmpIndex == randIndex) {
+			obj = it->second;
+			break;
+		}
+	}
+	return obj;
+}
+
 int main(int argc, char** argv)
 {
 	//constuct aoi instance
@@ -149,6 +182,7 @@ int main(int argc, char** argv)
 		printf("* c --check data consistency\n");
 		printf("* a --add new object\n");
 		printf("* d objId --remove object\n");
+		printf("* p opNum --random operate aoi opNum times\n");
 		printf("* Q --quit interactive mode\n");
 		printf("**************************************\n");
 		//scanf("%s", command);
@@ -180,20 +214,7 @@ int main(int argc, char** argv)
 			}
 			aoi->CheckConsistency();
 		}else if (strVec[0].compare("a") == 0){
-			uint32 maxId = 0;
-			for (map<uint32,Object*>::iterator it = objs.begin(); it != objs.end(); it++) {
-				if (it->first > maxId)
-					maxId = it->first;
-			}
-			Object* obj = new Object(maxId + 1, rand()%TYPE_NUM);
-			objs[obj->GetId()] = obj;
-			Location pos = GetRandLocaion();
-			obj->SetPos(pos);
-			aoi->AddObject(obj, pos);
-			if (rand()%2 == 1) {
-				obj->m_isWatcher = true;
-				aoi->AddWatcher(obj, pos, RANGE_TOWER);
-			}
+			AddRandomObject(objs, aoi);
 			aoi->CheckConsistency();
 		}else if (strVec[0].compare("d") == 0){
 			if (strVec.size() < 2) PROMPT;
@@ -206,6 +227,35 @@ int main(int argc, char** argv)
 				aoi->RemoveWatcher(obj, obj->m_pos, RANGE_TOWER);
 			delete obj;
 			objs.erase(it);
+			aoi->CheckConsistency();
+		}else if (strVec[0].compare("p") == 0){
+			if (strVec.size() < 2) PROMPT;
+			uint32 opNum = atoi(strVec[1].c_str());
+			for (uint32 num = 0; num < opNum; num++) {
+				uint8 op = rand()%3;
+				if (op == 0) { // add object
+					AddRandomObject(objs, aoi);
+				}else if (op == 1) { //delete object
+					Object* obj = GetRandomObject(objs);
+					if (obj) {
+						aoi->RemoveObject(obj, obj->m_pos);
+						if (obj->m_isWatcher)
+							aoi->RemoveWatcher(obj, obj->m_pos, RANGE_TOWER);
+						delete obj;
+						objs.erase(obj->GetId());
+					}
+				}else { //move object
+					Object* obj = GetRandomObject(objs);
+					if (obj) {
+						Location pos = GetRandLocaion();
+						if (aoi->UpdateObject(obj, obj->m_pos, pos)) {
+							if (obj->m_isWatcher)
+								aoi->UpdateWatcher(obj, obj->m_pos, RANGE_TOWER, pos, RANGE_TOWER);
+							obj->SetPos(pos);
+						}
+					}
+				}
+			}
 			aoi->CheckConsistency();
 		}else if (strVec[0].compare("c") == 0){
 			aoi->CheckConsistency();
