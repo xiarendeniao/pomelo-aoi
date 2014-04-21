@@ -152,6 +152,8 @@ namespace TowerAoi
 			for (typename ObjectSet::const_iterator it = m_objSet.begin(); it != m_objSet.end(); it++) {
 				ASSERT(allObjs.find(*it) != allObjs.end());
 			}
+			printf("area of tower(%d,%d) has %d objects, %d watchers\n", m_pos.x, m_pos.y, 
+				m_typeToObjSet.size(), m_typeToWatcherSet.size());
 			return true;
 		}
 
@@ -363,7 +365,7 @@ namespace TowerAoi
 						for (typename ObjectSet::const_iterator it = watcherSet.begin(); it != watcherSet.end(); it++) {
 							watcherToTower[*it].insert(m_towers[x][y]);
 						}
-					}					
+					}
 				}
 			}
 			for (typename map<T*, set<Tower<T>*> >::iterator it = watcherToTower.begin(); it != watcherToTower.end(); it++) {
@@ -373,6 +375,8 @@ namespace TowerAoi
 				for (typename set<Tower<T>*>::iterator towerIt = it->second.begin(); towerIt != it->second.end(); towerIt++) {
 					ASSERT(IsInRect((*towerIt)->GetPos(), region.startPos, region.endPos));
 				}
+				printf("watcher %d watching tower region (%d,%d)~(%d,%d)\n", it->first->GetId(), region.startPos.x, region.startPos.y,
+					region.endPos.x, region.endPos.y);
 			}
 			return true;
 		}

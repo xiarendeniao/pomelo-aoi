@@ -90,7 +90,7 @@ void WatcherMoved(Object* watcher, const set<Object*>& appearObjs, const set<Obj
 
 void SplitString(vector<string>& strVector, const char* str)
 {
-	ASSERT(strlen(str) < 1024);
+	ASSERT(strlen(str) <= 1024);
 	static char buff[1024] = {0};
 	const char* ptr = str;
 	char* buffPtr = buff;
@@ -129,12 +129,14 @@ void AddRandomObject(map<uint32,Object*>& objs, TowerAoi::TowerAoi<Object>* aoi)
 
 Object* GetRandomObject(const map<uint32,Object*>& objs)
 {
+	if (objs.size() == 0)
+		return NULL;
 	uint32 randIndex = rand()%objs.size();
 	uint32 tmpIndex = 0;
 	Object* obj = NULL;
 	map<uint32, Object*>::const_iterator it = objs.begin();
 	for (; it != objs.end(); it++) {
-		if (tmpIndex == randIndex) {
+		if (tmpIndex++ == randIndex) {
 			obj = it->second;
 			break;
 		}
@@ -212,10 +214,10 @@ int main(int argc, char** argv)
 					aoi->UpdateWatcher(obj, obj->m_pos, RANGE_TOWER, pos, RANGE_TOWER);
 				obj->SetPos(pos);
 			}
-			aoi->CheckConsistency();
+			/*aoi->CheckConsistency();*/
 		}else if (strVec[0].compare("a") == 0){
 			AddRandomObject(objs, aoi);
-			aoi->CheckConsistency();
+			/*aoi->CheckConsistency();*/
 		}else if (strVec[0].compare("d") == 0){
 			if (strVec.size() < 2) PROMPT;
 			uint32 objId = atoi(strVec[1].c_str());
@@ -227,7 +229,7 @@ int main(int argc, char** argv)
 				aoi->RemoveWatcher(obj, obj->m_pos, RANGE_TOWER);
 			delete obj;
 			objs.erase(it);
-			aoi->CheckConsistency();
+			/*aoi->CheckConsistency();*/
 		}else if (strVec[0].compare("p") == 0){
 			if (strVec.size() < 2) PROMPT;
 			uint32 opNum = atoi(strVec[1].c_str());
@@ -241,8 +243,8 @@ int main(int argc, char** argv)
 						aoi->RemoveObject(obj, obj->m_pos);
 						if (obj->m_isWatcher)
 							aoi->RemoveWatcher(obj, obj->m_pos, RANGE_TOWER);
-						delete obj;
 						objs.erase(obj->GetId());
+						delete obj;
 					}
 				}else { //move object
 					Object* obj = GetRandomObject(objs);
@@ -256,7 +258,7 @@ int main(int argc, char** argv)
 					}
 				}
 			}
-			aoi->CheckConsistency();
+			/*aoi->CheckConsistency();*/
 		}else if (strVec[0].compare("c") == 0){
 			aoi->CheckConsistency();
 			printf("data is all right\n");
